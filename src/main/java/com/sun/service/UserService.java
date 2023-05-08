@@ -1,8 +1,8 @@
 package com.sun.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.sun.common.CommonResult;
 import com.sun.dto.LoginFormDTO;
-import com.sun.dto.Result;
 import com.sun.entity.User;
 
 /**
@@ -11,17 +11,24 @@ import com.sun.entity.User;
 public interface UserService extends IService<User> {
 
     /**
-     * 发送验证码
+     * 发送手机验证码并将验证码保存到 Redis 中
      */
-    Result sendCode(String phone);
+    CommonResult<String> sendCode(String phone);
 
     /**
-     * 短信验证码注册和登录
+     * 登录功能（登录成功后返回 Token）
+     *
+     * @param loginForm 登录参数：手机号、验证码（验证码登录）；或者手机号、密码（密码登录）。
      */
-    Result login(LoginFormDTO loginForm);
+    CommonResult<String> login(LoginFormDTO loginForm);
 
-    Result sign();
+    /**
+     * 签到
+     */
+    CommonResult<String> sign();
 
-    Result signCount();
-
+    /**
+     * 统计本月当前用户截止当前时间连续签到的天数
+     */
+    CommonResult<Integer> serialSignCount4CurrentMonth();
 }

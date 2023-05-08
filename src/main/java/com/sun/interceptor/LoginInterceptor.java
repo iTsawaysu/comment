@@ -1,8 +1,7 @@
 package com.sun.interceptor;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.sun.utils.UserHolder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -10,23 +9,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * @Author Sun Jianda
- * @Date 2022/10/10
+ * @author sun
  */
 @Component
 public class LoginInterceptor implements HandlerInterceptor {
-
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-
-    /**
-     * 登录验证流程
-     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // 判断是否需要拦截（ThreadLocal 中是否有用户）
-        if (UserHolder.getUser() == null) {
-            response.setStatus(401);
+        // 判断 ThreadLocal 中是否有用户信息
+        if (ObjectUtil.isNull(UserHolder.getUser())) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
         return true;

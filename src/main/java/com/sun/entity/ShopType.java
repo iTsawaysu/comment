@@ -55,5 +55,4 @@ public class ShopType implements Serializable {
     @JsonIgnore
     private LocalDateTime updateTime;
 
-
 }

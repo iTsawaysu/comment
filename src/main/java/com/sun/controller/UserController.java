@@ -2,8 +2,8 @@ package com.sun.controller;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import com.sun.common.CommonResult;
 import com.sun.dto.LoginFormDTO;
-import com.sun.dto.Result;
 import com.sun.dto.UserDTO;
 import com.sun.entity.User;
 import com.sun.entity.UserInfo;
@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 
 /**
  * @author sun
@@ -30,19 +31,19 @@ public class UserController {
     private UserInfoService userInfoService;
 
     /**
-     * 发送手机验证码
+     * 发送手机验证码并将验证码保存到 Redis 中
      */
-    @PostMapping("code")
-    public Result sendCode(@RequestParam("phone") String phone) {
+    @PostMapping("/code")
+    public CommonResult<String> sendCode(@RequestParam("phone") String phone) {
         return userService.sendCode(phone);
     }
 
     /**
-     * 登录功能
-     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
+     * 登录功能（登录成功后返回 Token）
+     * @param loginForm 登录请求的参数：手机号、验证码（验证码登录）；或者手机号、密码（密码登录）。
      */
     @PostMapping("/login")
-    public Result login(@RequestBody LoginFormDTO loginForm){
+    public CommonResult<String> login(@RequestBody LoginFormDTO loginForm){
         return userService.login(loginForm);
     }
 
@@ -50,47 +51,61 @@ public class UserController {
      * 登出功能
      */
     @PostMapping("/logout")
-    public Result logout(){
-        return Result.fail("功能未完成");
+    public CommonResult<String> logout(){
+        return CommonResult.success("成功退出");
     }
 
+    /**
+     * 获取当前登录的用户并返回
+     */
     @GetMapping("/me")
-    public Result me(){
-        UserDTO user = UserHolder.getUser();
-        return Result.ok(user);
+    public CommonResult<UserDTO> me(){
+        return CommonResult.success(UserHolder.getUser());
     }
 
+    /**
+     * 根据用户 id 查看用户详情
+     */
     @GetMapping("/info/{id}")
-    public Result info(@PathVariable("id") Long userId){
+    public CommonResult<UserInfo> info(@PathVariable("id") Long userId){
         // 查询详情
         UserInfo info = userInfoService.getById(userId);
         if (info == null) {
             // 没有详情，应该是第一次查看详情
-            return Result.ok();
+            return CommonResult.success(null);
         }
-        info.setCreateTime(null);
-        info.setUpdateTime(null);
+        info.setCreateTime(LocalDateTime.now());
+        info.setUpdateTime(LocalDateTime.now());
         // 返回
-        return Result.ok(info);
+        return CommonResult.success(info);
     }
 
+    /**
+     * 根据 id 查询用户
+     */
     @GetMapping("/{id}")
-    public Result queryUserById(@PathVariable("id") Long id) {
+    public CommonResult<UserDTO> getUserById(@PathVariable("id") Long id) {
         User user = userService.getById(id);
         if (user == null) {
-            return Result.ok();
+            return CommonResult.success(null);
         }
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
-        return Result.ok(userDTO);
+        return CommonResult.success(userDTO);
     }
 
+    /**
+     * 签到
+     */
     @PostMapping("/sign")
-    public Result sign() {
+    public CommonResult<String> sign() {
         return userService.sign();
     }
 
+    /**
+     * 统计本月当前用户截止当前时间连续签到的天数
+     */
     @GetMapping("/sign/count")
-    public Result signCount() {
-        return userService.signCount();
+    public CommonResult<Integer> serialSignCount4CurrentMonth() {
+        return userService.serialSignCount4CurrentMonth();
     }
 }

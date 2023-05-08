@@ -29,7 +29,7 @@ public class Voucher implements Serializable {
     private Long id;
 
     /**
-     * 店铺id
+     * 商铺id
      */
     private Long shopId;
 
@@ -90,11 +90,9 @@ public class Voucher implements Serializable {
      */
     private LocalDateTime createTime;
 
-
     /**
      * 更新时间
      */
     private LocalDateTime updateTime;
-
 
 }

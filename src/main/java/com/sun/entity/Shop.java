@@ -29,17 +29,17 @@ public class Shop implements Serializable {
     private Long id;
 
     /**
-     * 店铺名称
+     * 商铺名称
      */
     private String name;
 
     /**
-     * 店铺类型的id
+     * 商铺类型的id
      */
     private Long typeId;
 
     /**
-     * 店铺图片，多个图片以','隔开
+     * 商铺图片，多个图片以','隔开
      */
     private String images;
 
@@ -97,7 +97,6 @@ public class Shop implements Serializable {
      * 更新时间
      */
     private LocalDateTime updateTime;
-
 
     @TableField(exist = false)
     private Double distance;

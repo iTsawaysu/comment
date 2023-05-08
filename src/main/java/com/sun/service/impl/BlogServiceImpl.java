@@ -1,21 +1,23 @@
 package com.sun.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.sun.dto.Result;
+import com.sun.common.CommonResult;
+import com.sun.common.ErrorCode;
+import com.sun.common.SystemConstants;
 import com.sun.dto.ScrollResult;
 import com.sun.dto.UserDTO;
 import com.sun.entity.Blog;
 import com.sun.entity.Follow;
 import com.sun.entity.User;
+import com.sun.exception.ThrowUtils;
 import com.sun.mapper.BlogMapper;
 import com.sun.service.BlogService;
 import com.sun.service.FollowService;
 import com.sun.service.UserService;
-import com.sun.utils.SystemConstants;
 import com.sun.utils.UserHolder;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -28,14 +30,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.sun.utils.RedisConstants.BLOG_LIKED_KEY;
-import static com.sun.utils.RedisConstants.FEED_KEY;
+import static com.sun.common.RedisConstants.BLOG_LIKED_KEY;
+import static com.sun.common.RedisConstants.FEED_KEY;
 
 /**
  * @author sun
  */
 @Service
-@SuppressWarnings("ALL")
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements BlogService {
 
     @Resource
@@ -47,163 +48,183 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @Resource
     private FollowService followService;
 
-    @Override
-    public Result saveBlog(Blog blog) {
-        // 1. 获取登录用户
-        UserDTO user = UserHolder.getUser();
-        blog.setUserId(user.getId());
-        // 2. 保存探店博文
-        boolean isSucceed = save(blog);
-        if (BooleanUtil.isFalse(isSucceed)) {
-            return Result.fail("发布失败～");
-        }
-        // 3. 查询笔记作者的所有粉丝
-        List<Follow> followUserList = followService.lambdaQuery().eq(Follow::getFollowUserId, user.getId()).list();
-        if (followUserList.isEmpty() || followUserList == null) {
-            return Result.ok(blog.getId());
-        }
-        // 4. 推送笔记给所有粉丝
-        for (Follow follow : followUserList) {
-            // 粉丝ID
-            Long userId = follow.getUserId();
-            // 推送
-            String key = FEED_KEY + userId;
-            stringRedisTemplate.opsForZSet().add(key, blog.getId().toString(), System.currentTimeMillis());
-        }
-        // 5. 返回id
-        return Result.ok(blog.getId());
-    }
-
-    @Override
-    public Result likeBlog(Long id) {
-        // 1. 判断当前登录用户是否点过赞。
-        Long userId = UserHolder.getUser().getId();
-        String key = BLOG_LIKED_KEY + id;
-        // `ZSCORE key member` ：获取 SortedSet 中指定元素的 score 值（如果不存在，则代表未点过赞）。
-        Double score = stringRedisTemplate.opsForZSet().score(key, userId.toString());
-
-        // 2. 未点过赞：点赞，数据库点赞数 +1，将用户保存到 Redis 的 Set 集合中。
-        if (score == null) {
-            Boolean isSucceed = update().setSql("liked = liked + 1").eq("id", id).update();
-            if (BooleanUtil.isTrue(isSucceed)) {
-                stringRedisTemplate.opsForZSet().add(key, userId.toString(), System.currentTimeMillis());
-            }
-        } else {
-            // 3. 已点过赞：取消赞，数据库点赞数 -1，将用户从 Redis 的 Set 集合中移除。
-            Boolean isSucceed = update().setSql("liked = liked - 1").eq("id", id).update();
-            if (BooleanUtil.isTrue(isSucceed)) {
-                stringRedisTemplate.opsForZSet().remove(key, userId.toString());
-            }
-        }
-        return Result.ok();
-    }
-
-    @Override
-    public Result queryMyBlog(Integer current) {
-        // 获取登录用户
-        UserDTO user = UserHolder.getUser();
-        // 根据用户查询
-        Page<Blog> page = query()
-                .eq("user_id", user.getId()).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
-        // 获取当前页数据
-        List<Blog> records = page.getRecords();
-        return Result.ok(records);
-    }
-
     /**
-     * 展示热门 Blog
+     * 按照点赞数降序排序，分页查询 Blog（包括笔记信息和用户信息）
      */
     @Override
-    public Result queryHotBlog(Integer current) {
-        // 根据用户查询
-        Page<Blog> page = query()
-                .orderByDesc("liked")
-                .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
-        // 获取当前页数据
-        List<Blog> records = page.getRecords();
-        // 查询用户
+    public CommonResult<List<Blog>> getHotBlogs(Integer current) {
+        // 分页查询 Blog
+        Page<Blog> pageInfo = new Page<>(current, SystemConstants.MAX_PAGE_SIZE);
+        Page<Blog> blogPage = this.lambdaQuery()
+                .orderByDesc(Blog::getLiked)
+                .page(pageInfo);
+        List<Blog> records = blogPage.getRecords();
+        ThrowUtils.throwIf(records == null, ErrorCode.NOT_FOUND_ERROR);
+
         records.forEach(blog -> {
-            this.queryBlogWithUserInfo(blog);
+            // 设置 Blog 中用户相关的属性值
+            this.setUserInfo4Blog(blog);
+            // 判断当前登录用户是否点赞过 Blog
             this.isBlogLiked(blog);
         });
-        return Result.ok(records);
+        return CommonResult.success(records);
     }
 
     /**
-     * 展示 Blog 详情页（根据 ID）
+     * 根据 id 获取 Blog 详情（包括笔记信息和用户信息）
      */
     @Override
-    public Result queryById(Long id) {
-        Blog blog = getById(id);
-        if (blog == null) {
-            return Result.fail("笔记不存在！");
-        }
-        queryBlogWithUserInfo(blog);
+    public CommonResult<Blog> getBlogDetailById(Long id) {
+        // 根据 id 查询 Blog
+        Blog blog = this.getById(id);
+        ThrowUtils.throwIf(blog == null, ErrorCode.NOT_FOUND_ERROR);
 
-        // 该用户是否点赞 Blog
-        isBlogLiked(blog);
-
-        return Result.ok(blog);
+        // 设置 Blog 中用户相关的属性值
+        this.setUserInfo4Blog(blog);
+        // 判断当前登录用户是否点赞过 Blog
+        this.isBlogLiked(blog);
+        return CommonResult.success(blog);
     }
 
     /**
-     * Blog 详情页展示最早点赞的 5 个用户
+     * 设置 Blog 中用户相关的属性值
+     */
+    private void setUserInfo4Blog(Blog blog) {
+        Long userId = blog.getUserId();
+        User user = userService.getById(userId);
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
+        blog.setName(user.getNickName());
+        blog.setIcon(user.getIcon());
+    }
+
+    /**
+     * 判断当前登录用户是否点赞过 Blog
+     */
+    public void isBlogLiked(Blog blog) {
+        String blogLikedKey = BLOG_LIKED_KEY + blog.getId();
+        UserDTO user = UserHolder.getUser();
+        // 未登录时 user 为 null，无需查询当前用户是否点赞过
+        if (user == null) {
+            return;
+        }
+        Double score = stringRedisTemplate.opsForZSet().score(blogLikedKey, user.getId().toString());
+        // ZSCORE key member：获取 ZSet 中指定元素的 score 值，不存在则代表未点过赞。
+        blog.setIsLike(score != null);
+    }
+
+    /**
+     * 实现点赞功能
      */
     @Override
-    public Result queryBlogLikes(Long id) {
-        String key = BLOG_LIKED_KEY + id;
+    public CommonResult<String> likeBlog(Long id) {
+        // 1. 判断当前用户是否点过赞
+        String blogLikedKey = BLOG_LIKED_KEY + id;
+        Long userId = UserHolder.getUser().getId();
+        // ZSCORE key member：获取 ZSet 中指定元素的 score 值，不存在则代表未点过赞。
+        Double score = stringRedisTemplate.opsForZSet().score(blogLikedKey, userId.toString());
 
-        // 1. 查询最早五个点赞的用户
-        Set<String> topFive = stringRedisTemplate.opsForZSet().range(key, 0, 4);
-        if (topFive == null || topFive.isEmpty()) {
-            return Result.ok(Collections.emptyList());
+        // 2. 未点过赞
+        boolean result = false;
+        if (score == null) {
+            result = this.lambdaUpdate()
+                    .eq(Blog::getId, id)
+                    .setSql("liked = liked + 1")
+                    .update();
+            ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+            stringRedisTemplate.opsForZSet().add(blogLikedKey, userId.toString(), System.currentTimeMillis());
+            return CommonResult.success("点赞成功");
+        } else {
+            // 3. 点过赞则取消点赞
+            result = this.lambdaUpdate()
+                    .eq(Blog::getId, id)
+                    .setSql("liked = liked - 1")
+                    .update();
+            ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+            stringRedisTemplate.opsForZSet().remove(blogLikedKey, userId.toString());
+            return CommonResult.success("取消点赞成功");
+        }
+    }
+
+    /**
+     * 获取最早点赞的 5 个用户
+     */
+    @Override
+    public CommonResult<List<UserDTO>> getTopFiveUserLikedBlog(Long id) {
+        String blogLikedKey = BLOG_LIKED_KEY + id;
+
+        // 1. 从 Redis 中查询点赞该 Blog 的前 5 位用户的 id
+        Set<String> topFive = stringRedisTemplate.opsForZSet().range(blogLikedKey, 0, 4);
+        if (CollectionUtil.isEmpty(topFive)) {
+            return CommonResult.success(Collections.emptyList());
         }
 
-        // 2. 解析出其中的 用户ID
-        List<Long> userIdList = topFive.stream()
-                .map(Long::valueOf)
-                .collect(Collectors.toList());
-        String userIdStrWithComma = StrUtil.join(", ", userIdList);
-
-        // 3. 根据 ID 批量查询
-        List<UserDTO> userDTOList = userService.query()
-                .in("id", userIdList)
-                .last("ORDER BY FIELD(id, " + userIdStrWithComma + ")")
+        // 2. 根据 id 查询用户信息，避免泄露敏感信息返回 UserDTO。
+        List<Long> userIdList = topFive.stream().map(userIdStr -> Long.parseLong(userIdStr)).collect(Collectors.toList());
+        String userIdStr = StrUtil.join(",", userIdList);
+        List<UserDTO> userDTOList = userService.lambdaQuery()
+                .in(User::getId, userIdList)
+                .last("ORDER BY FIELD(id, " + userIdStr + ")")
                 .list()
                 .stream()
                 .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
                 .collect(Collectors.toList());
-
-        return Result.ok(userDTOList);
+        return CommonResult.success(userDTOList);
     }
 
+    /**
+     * 发布笔记（保存 Blog 到数据库的同时，推送消息到粉丝的收件箱）
+     */
     @Override
-    public Result queryBlogOfFollow(Long max, Integer offset) {
-        // 1. 获取当前用户
-        Long userId = UserHolder.getUser().getId();
+    public CommonResult<Long> publishBlog(Blog blog) {
+        // 1. 保存 Blog 到数据库
+        ThrowUtils.throwIf(blog == null, ErrorCode.PARAMS_ERROR);
+        UserDTO user = UserHolder.getUser();
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
+        blog.setUserId(user.getId());
+        boolean result = this.save(blog);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 
-        // 2. 查询收件箱 ZREVRANGEBYSCORE key max min LIMIT offset count
-        String key = FEED_KEY + userId;
-        Set<ZSetOperations.TypedTuple<String>> tupleSet = stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(key, 0, max, offset, 2);
-        if (tupleSet.isEmpty() || tupleSet == null) {
-            return Result.ok("关注一些人去吧～");
+        // 2. 查询该 Blogger 的粉丝
+        List<Follow> fansList = followService.lambdaQuery().eq(Follow::getFollowUserId, user.getId()).list();
+        ThrowUtils.throwIf(CollectionUtil.isEmpty(fansList), ErrorCode.NOT_FOUND_ERROR);
+
+        // 3. 推送 Blog 给所有粉丝
+        for (Follow follow : fansList) {
+            // Key 用于标识不同粉丝，每个粉丝都有一个收件箱；Value 存储 BlogId；Score 存储时间戳。
+            String key = FEED_KEY + follow.getUserId();
+            stringRedisTemplate.opsForZSet().add(key, blog.getId().toString(), System.currentTimeMillis());
         }
+        return CommonResult.success(blog.getId());
+    }
 
-        // 3. 解析数据：blogId、lastId（最小时间戳）、offset
-        List<Long> blogIdList = new ArrayList<>(tupleSet.size());
+    /**
+     * 获取当前用户收件箱中的 Blog（关注的人发布的 Blog）
+     * @param max 上次查询的最小时间戳（第一次查询为当前时间戳）
+     * @param offset 偏移量（第一次查询为 0）
+     * @return Blog 集合 + 本次查询的最小时间戳 + 偏移量
+     */
+    @Override
+    public CommonResult<ScrollResult> getBlogsOfIdols(Long max, Integer offset) {
+        // 1. 查询当前用户的收件箱
+        // ZREVRANGEBYSCORE key max min LIMIT offset count
+        String key = FEED_KEY + UserHolder.getUser().getId();
+        Set<ZSetOperations.TypedTuple<String>> tupleSet = stringRedisTemplate.opsForZSet()
+                .reverseRangeByScoreWithScores(key, 0, max, offset, 2);
+        ThrowUtils.throwIf(CollectionUtil.isEmpty(tupleSet), ErrorCode.NOT_FOUND_ERROR);
+
+        // 2. 解析数据（Key - feed:userId、Value - BlogId、Score - timestamp），解析得到 blogId、timestamp、offset。
+        ArrayList<Long> blogIdList = new ArrayList<>();
         long minTime = 0;
         int nextOffset = 1;
         for (ZSetOperations.TypedTuple<String> tuple : tupleSet) {
-            blogIdList.add(Long.valueOf(tuple.getValue()));
-            // 时间戳（最后一个元素即为最小时间戳）
+            blogIdList.add(Long.parseLong(tuple.getValue()));
+            // 循环到最后一次将其赋值给 timestamp 即可拿到最小时间戳。
             long time = tuple.getScore().longValue();
 
-            // 假设时间戳为：5 4 4 2 2
-            // 5 != 0 --> minTime=5; nextOffset = 1;
-            // 4 != 5 --> minTime=4; nextOffset = 1;
-            // 4 == 4 --> minTime=4; nextOffset = 2;
-            // 2 != 4 --> minTime=2; nextOffset = 1;
-            // 2 == 2 --> minTime=2; nextOffset = 2;
+            // 假设时间戳为：2 2 1
+            // 2 != 0 --> minTime=5; nextOffset = 1;
+            // 2 == 2 --> minTime=4; nextOffset = 2;
+            // 2 != 1 --> minTime=4; nextOffset = 1;
             if (time == minTime) {
                 nextOffset ++;
             } else {
@@ -211,40 +232,24 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 nextOffset = 1;
             }
         }
-
-        // 4. 根据 ID 查询 Blog
-        String blogIdStr = StrUtil.join(", ", blogIdList);
-        List<Blog> blogList = lambdaQuery().in(Blog::getId, blogIdList).last("ORDER BY FIELD(id, " + blogIdStr + ")").list();
+        // 3. 根据 BlogId 获取 Blog 并设置相关信息
+        String blogIdStr = StrUtil.join(",", blogIdList);
+        List<Blog> blogList = this.lambdaQuery()
+                .in(Blog::getId, blogIdStr)
+                .last("ORDER BY FIELD(id, " + blogIdStr + ")")
+                .list();
         for (Blog blog : blogList) {
-            // 完善 Blog 数据：查询并且设置与 Blog 有关的用户信息，以及 Blog 是否被该用户点赞
-            queryBlogWithUserInfo(blog);
-            isBlogLiked(blog);
+            // 设置 Blog 中用户相关的属性值
+            this.setUserInfo4Blog(blog);
+            // 判断当前登录用户是否点赞过 Blog
+            this.isBlogLiked(blog);
         }
 
-        // 5. 封装并返回
+        // 4.封装为 ScrollResult 并返回
         ScrollResult scrollResult = new ScrollResult();
         scrollResult.setList(blogList);
         scrollResult.setMinTime(minTime);
         scrollResult.setOffset(nextOffset);
-        return Result.ok(scrollResult);
-    }
-
-    private void queryBlogWithUserInfo(Blog blog) {
-        Long userId = blog.getUserId();
-        User user = userService.getById(userId);
-        blog.setIcon(user.getIcon());
-        blog.setName(user.getNickName());
-    }
-
-    private void isBlogLiked(Blog blog) {
-        String key = BLOG_LIKED_KEY + blog.getId();
-        UserDTO user = UserHolder.getUser();
-        if (user == null) {
-            // 用户未登录，无需查询是否点过赞
-            return;
-        }
-        Long userId = user.getId();
-        Double score = stringRedisTemplate.opsForZSet().score(key, userId.toString());
-        blog.setIsLike(score != null);
+        return CommonResult.success(scrollResult);
     }
 }

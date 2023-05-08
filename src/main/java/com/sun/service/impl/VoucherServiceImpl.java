@@ -1,10 +1,12 @@
 package com.sun.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.sun.dto.Result;
-import com.sun.entity.Voucher;
-import com.sun.mapper.VoucherMapper;
+import com.sun.common.CommonResult;
+import com.sun.common.ErrorCode;
 import com.sun.entity.SeckillVoucher;
+import com.sun.entity.Voucher;
+import com.sun.exception.ThrowUtils;
+import com.sun.mapper.VoucherMapper;
 import com.sun.service.SeckillVoucherService;
 import com.sun.service.VoucherService;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -14,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.List;
 
-import static com.sun.utils.RedisConstants.SECKILL_STOCK_KEY;
+import static com.sun.common.RedisConstants.SECKILL_STOCK_KEY;
 
 /**
  * @author sun
@@ -28,28 +30,38 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    @Override
-    public Result queryVoucherOfShop(Long shopId) {
-        // 查询优惠券信息
-        List<Voucher> vouchers = getBaseMapper().queryVoucherOfShop(shopId);
-        // 返回结果
-        return Result.ok(vouchers);
-    }
-
+    /**
+     * 新增秒杀券的同时将其存储到 Redis，同时还需要在优惠券表中新增优惠券
+     */
     @Override
     @Transactional
-    public void addSeckillVoucher(Voucher voucher) {
-        // 保存优惠券
-        save(voucher);
-        // 保存秒杀信息
+    public CommonResult<Long> addSeckillVoucher(Voucher voucher) {
+        // 新增优惠券
+        boolean result = this.save(voucher);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "新增优惠券失败");
+
+        // 新增秒杀券
         SeckillVoucher seckillVoucher = new SeckillVoucher();
         seckillVoucher.setVoucherId(voucher.getId());
         seckillVoucher.setStock(voucher.getStock());
         seckillVoucher.setBeginTime(voucher.getBeginTime());
         seckillVoucher.setEndTime(voucher.getEndTime());
-        seckillVoucherService.save(seckillVoucher);
+        result = seckillVoucherService.save(seckillVoucher);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "新增秒杀券失败");
 
-        // 将秒杀优惠券的库存保存到 Redis 中
+        // 将秒杀券存储到 Redis（SECKILL_STOCK_KEY = "seckill:stock:"）
         stringRedisTemplate.opsForValue().set(SECKILL_STOCK_KEY + voucher.getId(), voucher.getStock().toString());
+        return CommonResult.success(voucher.getId());
+    }
+
+    /**
+     * 根据 ShopId 查询店铺的优惠券列表
+     */
+    @Override
+    public CommonResult<List<Voucher>> getVoucherByShopId(Long shopId) {
+        // 查询商铺对应的优惠券信息
+        // SELECT * FROM tb_voucher v LEFT JOIN tb_seckill_voucher sv ON v.id = sv.voucher_id WHERE v.shop_id = ? AND v.status = 1;
+        List<Voucher> voucherList = this.getBaseMapper().getVoucherByShopId(shopId);
+        return CommonResult.success(voucherList);
     }
 }

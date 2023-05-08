@@ -1,10 +1,12 @@
 package com.sun.controller;
 
-import com.sun.dto.Result;
+import com.sun.common.CommonResult;
+import com.sun.dto.UserDTO;
 import com.sun.service.FollowService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author sun
@@ -18,11 +20,11 @@ public class FollowController {
 
     /**
      * 关注或取关
-     * @param followUserId 需要关注 or 取关的 用户ID
+     * @param followUserId 关注、取关的用户ID
      * @param isFollowed 是否关注
      */
     @PutMapping("/{id}/{isFollowed}")
-    public Result followOrNot(@PathVariable("id") Long followUserId, @PathVariable("isFollowed") Boolean isFollowed) {
+    public CommonResult<String> followOrNot(@PathVariable("id") Long followUserId, @PathVariable("isFollowed") Boolean isFollowed) {
         return followService.followOrNot(followUserId, isFollowed);
     }
 
@@ -31,7 +33,7 @@ public class FollowController {
      * @param followUserId 关注用户的ID
      */
     @GetMapping("/or/not/{id}")
-    public Result isFollowed(@PathVariable("id") Long followUserId) {
+    public CommonResult<Boolean> isFollowed(@PathVariable("id") Long followUserId) {
         return followService.isFollowed(followUserId);
     }
 
@@ -40,7 +42,8 @@ public class FollowController {
      * @param followUserId 关注用户的ID
      */
     @GetMapping("/common/{id}")
-    public Result commonFollow(@PathVariable("id") Long followUserId) {
+    public CommonResult<List<UserDTO>> commonFollow(@PathVariable("id") Long followUserId) {
         return followService.commonFollow(followUserId);
     }
+
 }

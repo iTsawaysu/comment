@@ -72,5 +72,4 @@ public class BlogComments implements Serializable {
      */
     private LocalDateTime updateTime;
 
-
 }

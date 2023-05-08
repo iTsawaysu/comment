@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
  * @author sun
  */
 public class RegexUtils {
+
     /**
      * 是否是无效手机格式
      * @param phone 要校验的手机号
@@ -39,4 +40,5 @@ public class RegexUtils {
         }
         return !str.matches(regex);
     }
+
 }

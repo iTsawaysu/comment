@@ -11,5 +11,8 @@ import java.util.List;
  */
 public interface VoucherMapper extends BaseMapper<Voucher> {
 
-    List<Voucher> queryVoucherOfShop(@Param("shopId") Long shopId);
+    /**
+     * 通过 shopId 对 tb_voucher 和 tb_seckill_voucher 进行连表查询
+     */
+    List<Voucher> getVoucherByShopId(@Param("shopId") Long shopId);
 }

@@ -1,55 +1,57 @@
 package com.sun.interceptor;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.sun.dto.UserDTO;
 import com.sun.utils.UserHolder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.sun.utils.RedisConstants.*;
+import static com.sun.common.RedisConstants.LOGIN_USER_KEY;
+import static com.sun.common.RedisConstants.TTL_THIRTY;
 
 /**
- * @Author Sun Jianda
- * @Date 2022/10/10
+ * @author sun
  */
 @Component
 public class RefreshTokenInterceptor implements HandlerInterceptor {
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
-    /**
-     * 登录验证流程
-     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // 1. 获取 Token
+        // 1. 从请求头中获取 Token
         String token = request.getHeader("authorization");
         if (StrUtil.isBlank(token)) {
+            // 直接放行
             return true;
         }
 
-        // 2. 基于 Token 从 Redis 中获取用户
-        String key = LOGIN_USER_KEY + token;
-        Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
-        if (map.isEmpty()) {
+        // 2. 根据 Token 获取 Redis 中存储的用户信息
+        String loginUserKey = LOGIN_USER_KEY + token;
+        // entries(key)：返回 key 对应的所有 Map 键值对
+        Map<Object, Object> map4UserDTO = stringRedisTemplate.opsForHash().entries(loginUserKey);
+        if (MapUtil.isEmpty(map4UserDTO)) {
+            // 直接放行
             return true;
         }
 
-        // 3. 将查询到的 Hash 类型的数据，转换为 UserDTO 类型的数据；保存到 ThreadLocal 中。
-        UserDTO userDTO = BeanUtil.fillBeanWithMap(map, new UserDTO(), false);
+        // 3. 将 Map 转换为 UserDTO（第三个参数 isIgnoreError：是否忽略注入错误）后，存入 ThreadLocal
+        UserDTO userDTO = new UserDTO();
+        userDTO = BeanUtil.fillBeanWithMap(map4UserDTO, userDTO, false);
         UserHolder.saveUser(userDTO);
 
         // 4. 刷新 Token 有效期
-        redisTemplate.expire(key, TTL_THIRTY, TimeUnit.DAYS);
+        stringRedisTemplate.expire(loginUserKey, TTL_THIRTY, TimeUnit.MINUTES);
         return true;
     }
 

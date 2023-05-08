@@ -5,7 +5,7 @@ spring:
     name: comment
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/comment?useSSL=false&characterEncoding=UTF-8&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/comment?useSSL=false&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useUnicode=true&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true
     username: root
     password: root
   redis:
@@ -19,7 +19,7 @@ spring:
         min-idle: 1
         time-between-eviction-runs: 10s
   jackson:
-    default-property-inclusion: non_null    # JSON 处理时忽略非空字段
+    default-property-inclusion: non_null    # JSON 处理时忽略空字段
 mybatis-plus:
   type-aliases-package: com.sun.entity
 logging:

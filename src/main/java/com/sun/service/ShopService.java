@@ -1,17 +1,34 @@
 package com.sun.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.sun.dto.Result;
+import com.sun.common.CommonResult;
 import com.sun.entity.Shop;
+
+import java.util.List;
 
 /**
  * @author sun
  */
 public interface ShopService extends IService<Shop> {
 
-    Result queryById(Long id);
+    /**
+     * 根据 id 查询商铺信息（使用缓存并解决缓存穿透、缓存雪崩、缓存击穿问题）
+     */
+    CommonResult<Shop> getShopById(Long id);
 
-    Result modify(Shop shop);
+    /**
+     * 更新商铺信息（先操作数据库，后删除缓存）
+     */
+    CommonResult<String> update(Shop shop);
 
-    Result queryShopByTypeId(Integer typeId, Integer current, Double x, Double y);
+    /**
+     * 根据店铺类型分页查询店铺信息（按照距离排序）
+     *
+     * @param typeId  店铺类型
+     * @param current 当前页码
+     * @param x       经度
+     * @param y       纬度
+     * @return 店铺列表
+     */
+    CommonResult<List<Shop>> getShopsByTypeOrderByDistance(Integer typeId, Integer current, Double x, Double y);
 }

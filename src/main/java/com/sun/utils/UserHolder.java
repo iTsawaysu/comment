@@ -6,17 +6,17 @@ import com.sun.dto.UserDTO;
  * @author sun
  */
 public class UserHolder {
-    private static final ThreadLocal<UserDTO> tl = new ThreadLocal<>();
+    private static final ThreadLocal<UserDTO> threadLocal = new ThreadLocal<>();
 
     public static void saveUser(UserDTO user){
-        tl.set(user);
+        threadLocal.set(user);
     }
 
     public static UserDTO getUser(){
-        return tl.get();
+        return threadLocal.get();
     }
 
     public static void removeUser(){
-        tl.remove();
+        threadLocal.remove();
     }
 }

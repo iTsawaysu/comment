@@ -3,29 +3,28 @@ package com.sun.utils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 /**
- * @Author Sun Jianda
- * @Date 2022/10/13
+ * @author sun
  */
-
 @Component
 public class RedisIdWorker {
 
     /**
-     * LocalDateTime.of(2022, 1, 1, 0, 0, 0).toEpochSecond(ZoneOffset.UTC);
-     * 2022年1月1日 0:0:00 的时间戳
+     * 指定时间戳（2023年1月1日 0:0:00） LocalDateTime.of(2023, 1, 1, 0, 0, 0).toEpochSecond(ZoneOffset.UTC)
      */
-    private static final long BEGIN_TIMESTAMP_2022 = 1640995200L;
-    /**
-     * 序列号的位数
-     */
-    private static final int BITS_COUNT = 32;
+    private static final long BEGIN_TIMESTAMP_2023 = 1672531200L;
 
-    private StringRedisTemplate stringRedisTemplate;
+    /**
+     * 序列号位数
+     */
+    private static final int BIT_COUNT = 32;
+
+    private final StringRedisTemplate stringRedisTemplate;
 
     public RedisIdWorker(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
@@ -33,22 +32,12 @@ public class RedisIdWorker {
 
     public long nextId(String keyPrefix) {
         // 1. 时间戳
-        long currentTimestamp = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
-        long timestamp = currentTimestamp - BEGIN_TIMESTAMP_2022;
+        long timestamp = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) - BEGIN_TIMESTAMP_2023;
 
-        // 2. 序列号
-        String formatTime = DateTimeFormatter.ofPattern("yyyy:MM:dd").format(LocalDateTime.now());
-        long serialNumber = stringRedisTemplate.opsForValue().increment("icr:" + keyPrefix + ":" + formatTime);
+        // 2. 生成序列号：自增 1，Key 不存在会自动创建一个 Key。（存储到 Redis 中的 Key 为 keyPrefix:date，Value 为自增的数量）
+        Long serialNumber = stringRedisTemplate.opsForValue().increment(keyPrefix + ":" + DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now()));
 
-        // 3. 拼接（时间戳向左移 32 位，通过或运算将其与序列号拼接）
-        return timestamp << BITS_COUNT | serialNumber;
+        // 3. 时间戳左移 32 位，序列号与右边的 32 个 0 进行与运算
+        return timestamp << BIT_COUNT | serialNumber;
     }
-
-    //public static void main(String[] args) {
-    //    long timestamp = LocalDateTime.of(2022, 1, 1, 0, 0, 0).toEpochSecond(ZoneOffset.UTC);
-    //    System.out.println(timestamp);
-    //
-    //    String formatTime = DateTimeFormatter.ofPattern("yyyyMMdd").format(LocalDateTime.now());
-    //    System.out.println(formatTime);
-    //}
 }

@@ -9,27 +9,23 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import javax.annotation.Resource;
 
 /**
- * @Author Sun Jianda
- * @Date 2022/10/10
+ * @author sun
  */
 @Configuration
 public class WebMvcConfiguration implements WebMvcConfigurer {
     @Resource
-    private LoginInterceptor loginInterceptor;
+    private RefreshTokenInterceptor refreshTokenInterceptor;
 
     @Resource
-    private RefreshTokenInterceptor refreshTokenInterceptor;
+    private LoginInterceptor loginInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(loginInterceptor)
-                .excludePathPatterns(
-                        "/shop/**", "/shop-type/**", "/upload/**",
-                        "/voucher/**", "/user/login", "/user/code", "/blog/hot"
-                ).order(1);
+        registry.addInterceptor(refreshTokenInterceptor).addPathPatterns("/**").order(0);
 
-        registry.addInterceptor(refreshTokenInterceptor)
-                .addPathPatterns("/**")
-                .order(0);
+        registry.addInterceptor(loginInterceptor).excludePathPatterns(
+                "/shop/**", "/shop-type/**", "/upload/**", "/voucher/**",
+                "/blog/hot", "/user/login", "/user/code"
+        ).order(1);
     }
 }

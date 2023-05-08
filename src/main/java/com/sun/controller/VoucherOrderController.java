@@ -1,7 +1,7 @@
 package com.sun.controller;
 
 
-import com.sun.dto.Result;
+import com.sun.common.CommonResult;
 import com.sun.service.VoucherOrderService;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,8 +20,13 @@ public class VoucherOrderController {
     @Resource
     private VoucherOrderService voucherOrderService;
 
-    @PostMapping("seckill/{id}")
-    public Result seckillVoucher(@PathVariable("id") Long voucherId) {
+    /**
+     * 秒杀下单优惠券
+     * @param voucherId     优惠券 ID
+     * @return              订单 ID
+     */
+    @PostMapping("/seckill/{id}")
+    public CommonResult<Long> seckillVoucher(@PathVariable("id") Long voucherId) {
         return voucherOrderService.seckillVoucher(voucherId);
     }
 }
