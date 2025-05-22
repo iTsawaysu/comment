@@ -1,17 +1,17 @@
 /*
- Navicat Premium Data Transfer
+ Navicat Premium Dump SQL
 
- Source Server         : Local
+ Source Server         : localhost
  Source Server Type    : MySQL
- Source Server Version : 80030 (8.0.30)
+ Source Server Version : 80200 (8.2.0)
  Source Host           : localhost:3306
  Source Schema         : comment
 
  Target Server Type    : MySQL
- Target Server Version : 80030 (8.0.30)
+ Target Server Version : 80200 (8.2.0)
  File Encoding         : 65001
 
- Date: 08/05/2023 09:21:53
+ Date: 20/10/2024 01:16:38
 */
 
 SET NAMES utf8mb4;
@@ -30,8 +30,8 @@ CREATE TABLE `tb_blog` (
   `content` varchar(2048) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '探店的文字描述',
   `liked` int unsigned DEFAULT '0' COMMENT '点赞数量',
   `comments` int unsigned DEFAULT NULL COMMENT '评论数量',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime NOT NULL COMMENT '创建时间',
+  `update_time` datetime NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 
@@ -45,7 +45,7 @@ INSERT INTO `tb_blog` (`id`, `shop_id`, `user_id`, `title`, `images`, `content`,
 INSERT INTO `tb_blog` (`id`, `shop_id`, `user_id`, `title`, `images`, `content`, `liked`, `comments`, `create_time`, `update_time`) VALUES (4, 10, 1, '杭州周末好去处｜💰50就可以骑马啦🐎', '/imgs/blogs/blog1.jpg', '杭州周末好去处｜💰50就可以骑马啦🐎', 3, 0, '2023-05-06 17:25:16', '2023-05-06 17:25:44');
 INSERT INTO `tb_blog` (`id`, `shop_id`, `user_id`, `title`, `images`, `content`, `liked`, `comments`, `create_time`, `update_time`) VALUES (5, 1, 1, '好好学习，天天向上！', '/imgs/blogs/07e79d2f-5220-47c8-91c1-b6b922d1945b.JPG', 'Good Good Study, Day Day Up!!!', 1, 0, '2023-05-06 17:25:37', '2023-05-06 18:14:04');
 INSERT INTO `tb_blog` (`id`, `shop_id`, `user_id`, `title`, `images`, `content`, `liked`, `comments`, `create_time`, `update_time`) VALUES (6, 3, 4, '主食的故事', '/imgs/blogs/766f31bf9e354e99ba2c91d953f63e52.jpg,/imgs/blogs/d8e7f6fd5d4044be8729181c8eacc442.jpeg', '主食通常提供了人类所需要的大部分卡路里。中国人的烹调手艺与众不同，从最平凡\n的一锅米饭，一个馒头，到变化万千的精致主食，都是中国人辛勤劳动，经验积累的结晶\n。然而，不管吃下了多少酒食菜肴，主食，永远都是中国人餐桌上最后的主角。 \n    老黄的全名叫黄国盛，认识他的人都叫他老黄，从每年农历十一月初开始，老黄每隔\n三天，会拉着自己家里做的七百个馍馍，骑一个半小时的三轮车，到县城里去卖。 \n老黄卖的黄馍馍，就是用糜子面做成的馒头。是陕北人冬天最爱吃的一种主食。糜子，又\n叫黍，是中国北方干旱地区最主要的农作物。8000多年前，中国黄河流域开始栽培黍。 ', 3, 0, '2023-05-06 17:25:37', '2023-05-06 19:31:10');
-INSERT INTO `tb_blog` (`id`, `shop_id`, `user_id`, `title`, `images`, `content`, `liked`, `comments`, `create_time`, `update_time`) VALUES (29, 10, 4, 'IntelliJ IDEA – 领先的 Java 和 Kotlin IDE', '/imgs/blogs/97243ba6af8e47b2a4fc22f8c7a11227.png', '最先进的编辑器\n快速编写高质量代码，通过编码辅助功能搜索可能的错误并在输入时获得改进建议，同时无缝了解编码、新语言功能等方面的社区最佳做法。\n\n深度代码理解\nIntelliJ IDEA 对您的代码了如指掌，利用这些知识在每个上下文中提供相关建议，实现极快的导航和智能体验。\n\n协作和远程\n与团队实时处理项目。创建共享会话，审查代码、调试等。将项目转移到远程机器，在任意笔记本电脑上享受 IntelliJ IDEA 的全部功能并提高工作效率。\n\n开箱即用体验\n从首次启动开始享受卓越工具集。任务关键型工具和多种支持语言与框架开箱即用，无需另外安装插件。', 0, NULL, '2023-05-07 19:52:04', '2023-05-07 19:52:04');
+INSERT INTO `tb_blog` (`id`, `shop_id`, `user_id`, `title`, `images`, `content`, `liked`, `comments`, `create_time`, `update_time`) VALUES (7, 10, 4, 'IntelliJ IDEA – 领先的 Java 和 Kotlin IDE', '/imgs/blogs/97243ba6af8e47b2a4fc22f8c7a11227.png', '最先进的编辑器\n快速编写高质量代码，通过编码辅助功能搜索可能的错误并在输入时获得改进建议，同时无缝了解编码、新语言功能等方面的社区最佳做法。\n\n深度代码理解\nIntelliJ IDEA 对您的代码了如指掌，利用这些知识在每个上下文中提供相关建议，实现极快的导航和智能体验。\n\n协作和远程\n与团队实时处理项目。创建共享会话，审查代码、调试等。将项目转移到远程机器，在任意笔记本电脑上享受 IntelliJ IDEA 的全部功能并提高工作效率。\n\n开箱即用体验\n从首次启动开始享受卓越工具集。任务关键型工具和多种支持语言与框架开箱即用，无需另外安装插件。', 0, 0, '2023-05-07 19:52:04', '2023-05-07 19:52:04');
 COMMIT;
 
 -- ----------------------------
@@ -61,8 +61,8 @@ CREATE TABLE `tb_blog_comments` (
   `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '回复的内容',
   `liked` int unsigned DEFAULT NULL COMMENT '点赞数',
   `status` tinyint unsigned DEFAULT NULL COMMENT '状态，0：正常，1：被举报，2：禁止查看',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 
@@ -80,17 +80,19 @@ CREATE TABLE `tb_follow` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
   `user_id` bigint unsigned NOT NULL COMMENT '用户id',
   `follow_user_id` bigint unsigned NOT NULL COMMENT '关联的用户id',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 -- Records of tb_follow
 -- ----------------------------
 BEGIN;
-INSERT INTO `tb_follow` (`id`, `user_id`, `follow_user_id`, `create_time`) VALUES (15, 4, 2, '2023-05-06 22:53:29');
-INSERT INTO `tb_follow` (`id`, `user_id`, `follow_user_id`, `create_time`) VALUES (16, 1, 2, '2023-05-06 22:53:58');
-INSERT INTO `tb_follow` (`id`, `user_id`, `follow_user_id`, `create_time`) VALUES (17, 2, 4, '2023-05-07 19:50:18');
+INSERT INTO `tb_follow` (`id`, `user_id`, `follow_user_id`, `create_time`, `update_time`) VALUES (1, 4, 2, '2023-05-06 22:53:29', '2024-10-19 17:12:33');
+INSERT INTO `tb_follow` (`id`, `user_id`, `follow_user_id`, `create_time`, `update_time`) VALUES (2, 1, 2, '2023-05-06 22:53:58', '2024-10-19 17:12:34');
+INSERT INTO `tb_follow` (`id`, `user_id`, `follow_user_id`, `create_time`, `update_time`) VALUES (3, 2, 4, '2023-05-07 19:50:18', '2024-10-19 17:12:35');
+INSERT INTO `tb_follow` (`id`, `user_id`, `follow_user_id`, `create_time`, `update_time`) VALUES (4, 1, 3, '2024-10-20 00:56:10', '2024-10-19 17:12:37');
 COMMIT;
 
 -- ----------------------------
@@ -100,10 +102,10 @@ DROP TABLE IF EXISTS `tb_seckill_voucher`;
 CREATE TABLE `tb_seckill_voucher` (
   `voucher_id` bigint unsigned NOT NULL COMMENT '关联的优惠券的id',
   `stock` int NOT NULL COMMENT '库存',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `begin_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '生效时间',
-  `end_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '失效时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `begin_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '生效时间',
+  `end_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '失效时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`voucher_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT COMMENT='秒杀优惠券表，与优惠券是一对一关系';
 
@@ -111,7 +113,7 @@ CREATE TABLE `tb_seckill_voucher` (
 -- Records of tb_seckill_voucher
 -- ----------------------------
 BEGIN;
-INSERT INTO `tb_seckill_voucher` (`voucher_id`, `stock`, `create_time`, `begin_time`, `end_time`, `update_time`) VALUES (2, 100, '2023-05-01 13:13:13', '2023-05-01 13:13:13', '2023-06-06 14:14:14', '2023-05-03 22:42:40');
+INSERT INTO `tb_seckill_voucher` (`voucher_id`, `stock`, `begin_time`, `end_time`, `create_time`, `update_time`) VALUES (1, 100, '2023-05-01 13:13:13', '2023-06-06 14:14:14', '2023-05-01 13:13:13', '2024-10-19 17:12:41');
 COMMIT;
 
 -- ----------------------------
@@ -132,8 +134,8 @@ CREATE TABLE `tb_shop` (
   `comments` int(10) unsigned zerofill NOT NULL COMMENT '评论数量',
   `score` int(2) unsigned zerofill NOT NULL COMMENT '评分，1~5分，乘10保存，避免小数',
   `open_hours` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '营业时间，例如 10:00-22:00',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `foreign_key_type` (`type_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
@@ -142,7 +144,7 @@ CREATE TABLE `tb_shop` (
 -- Records of tb_shop
 -- ----------------------------
 BEGIN;
-INSERT INTO `tb_shop` (`id`, `name`, `type_id`, `images`, `area`, `address`, `x`, `y`, `avg_price`, `sold`, `comments`, `score`, `open_hours`, `create_time`, `update_time`) VALUES (1, '101茶餐厅', 1, 'https://qcloud.dpfile.com/pc/jiclIsCKmOI2arxKN1Uf0Hx3PucIJH8q0QSz-Z8llzcN56-_QiKuOvyio1OOxsRtFoXqu0G3iT2T27qat3WhLVEuLYk00OmSS1IdNpm8K8sG4JN9RIm2mTKcbLtc2o2vfCF2ubeXzk49OsGrXt_KYDCngOyCwZK-s3fqawWswzk.jpg,https://qcloud.dpfile.com/pc/IOf6VX3qaBgFXFVgp75w-KKJmWZjFc8GXDU8g9bQC6YGCpAmG00QbfT4vCCBj7njuzFvxlbkWx5uwqY2qcjixFEuLYk00OmSS1IdNpm8K8sG4JN9RIm2mTKcbLtc2o2vmIU_8ZGOT1OjpJmLxG6urQ.jpg', '大关', '金华路锦昌文华苑29号', 120.149192, 30.316078, 80, 0000004215, 0000003035, 37, '10:00-22:00', '2021-12-22 18:10:39', '2023-05-03 00:26:18');
+INSERT INTO `tb_shop` (`id`, `name`, `type_id`, `images`, `area`, `address`, `x`, `y`, `avg_price`, `sold`, `comments`, `score`, `open_hours`, `create_time`, `update_time`) VALUES (1, '101茶餐厅', 1, 'https://qcloud.dpfile.com/pc/jiclIsCKmOI2arxKN1Uf0Hx3PucIJH8q0QSz-Z8llzcN56-_QiKuOvyio1OOxsRtFoXqu0G3iT2T27qat3WhLVEuLYk00OmSS1IdNpm8K8sG4JN9RIm2mTKcbLtc2o2vfCF2ubeXzk49OsGrXt_KYDCngOyCwZK-s3fqawWswzk.jpg,https://qcloud.dpfile.com/pc/IOf6VX3qaBgFXFVgp75w-KKJmWZjFc8GXDU8g9bQC6YGCpAmG00QbfT4vCCBj7njuzFvxlbkWx5uwqY2qcjixFEuLYk00OmSS1IdNpm8K8sG4JN9RIm2mTKcbLtc2o2vmIU_8ZGOT1OjpJmLxG6urQ.jpg', '大关', '金华路锦昌文华苑29号', 120.149192, 30.316078, 80, 0000004215, 0000003035, 37, '10:00-22:00', '2021-12-22 18:10:39', '2023-12-17 15:29:18');
 INSERT INTO `tb_shop` (`id`, `name`, `type_id`, `images`, `area`, `address`, `x`, `y`, `avg_price`, `sold`, `comments`, `score`, `open_hours`, `create_time`, `update_time`) VALUES (2, '蔡馬洪涛烤肉·老北京铜锅涮羊肉', 1, 'https://p0.meituan.net/bbia/c1870d570e73accbc9fee90b48faca41195272.jpg,http://p0.meituan.net/mogu/397e40c28fc87715b3d5435710a9f88d706914.jpg,https://qcloud.dpfile.com/pc/MZTdRDqCZdbPDUO0Hk6lZENRKzpKRF7kavrkEI99OxqBZTzPfIxa5E33gBfGouhFuzFvxlbkWx5uwqY2qcjixFEuLYk00OmSS1IdNpm8K8sG4JN9RIm2mTKcbLtc2o2vmIU_8ZGOT1OjpJmLxG6urQ.jpg', '拱宸桥/上塘', '上塘路1035号（中国工商银行旁）', 120.151505, 30.333422, 85, 0000002160, 0000001460, 46, '11:30-03:00', '2021-12-22 19:00:13', '2022-01-11 16:12:26');
 INSERT INTO `tb_shop` (`id`, `name`, `type_id`, `images`, `area`, `address`, `x`, `y`, `avg_price`, `sold`, `comments`, `score`, `open_hours`, `create_time`, `update_time`) VALUES (3, '新白鹿餐厅(运河上街店)', 1, 'https://p0.meituan.net/biztone/694233_1619500156517.jpeg,https://img.meituan.net/msmerchant/876ca8983f7395556eda9ceb064e6bc51840883.png,https://img.meituan.net/msmerchant/86a76ed53c28eff709a36099aefe28b51554088.png', '运河上街', '台州路2号运河上街购物中心F5', 120.151954, 30.32497, 61, 0000012035, 0000008045, 47, '10:30-21:00', '2021-12-22 19:10:05', '2022-01-11 16:12:42');
 INSERT INTO `tb_shop` (`id`, `name`, `type_id`, `images`, `area`, `address`, `x`, `y`, `avg_price`, `sold`, `comments`, `score`, `open_hours`, `create_time`, `update_time`) VALUES (4, 'Mamala(杭州远洋乐堤港店)', 1, 'https://img.meituan.net/msmerchant/232f8fdf09050838bd33fb24e79f30f9606056.jpg,https://qcloud.dpfile.com/pc/rDe48Xe15nQOHCcEEkmKUp5wEKWbimt-HDeqYRWsYJseXNncvMiXbuED7x1tXqN4uzFvxlbkWx5uwqY2qcjixFEuLYk00OmSS1IdNpm8K8sG4JN9RIm2mTKcbLtc2o2vmIU_8ZGOT1OjpJmLxG6urQ.jpg', '拱宸桥/上塘', '丽水路66号远洋乐堤港商城2期1层B115号', 120.146659, 30.312742, 290, 0000013519, 0000009529, 49, '11:00-22:00', '2021-12-22 19:17:15', '2022-01-11 16:12:51');
@@ -167,8 +169,8 @@ CREATE TABLE `tb_shop_type` (
   `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '类型名称',
   `icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '图标',
   `sort` int unsigned DEFAULT NULL COMMENT '顺序',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 
@@ -218,8 +220,8 @@ CREATE TABLE `tb_user` (
   `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '密码，加密存储',
   `nick_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '昵称，默认是用户id',
   `icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '人物头像',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `uniqe_key_phone` (`phone`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1014 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
@@ -248,8 +250,8 @@ CREATE TABLE `tb_user_info` (
   `birthday` date DEFAULT NULL COMMENT '生日',
   `credits` int unsigned DEFAULT '0' COMMENT '积分',
   `level` tinyint unsigned DEFAULT '0' COMMENT '会员级别，0~9级,0代表未开通会员',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 
@@ -273,8 +275,8 @@ CREATE TABLE `tb_voucher` (
   `actual_value` bigint NOT NULL COMMENT '抵扣金额，单位是分。例如200代表2元',
   `type` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '0,普通券；1,秒杀券',
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1,上架; 2,下架; 3,过期',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 
@@ -296,11 +298,11 @@ CREATE TABLE `tb_voucher_order` (
   `voucher_id` bigint unsigned NOT NULL COMMENT '购买的代金券id',
   `pay_type` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '支付方式 1：余额支付；2：支付宝；3：微信',
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '订单状态，1：未支付；2：已支付；3：已核销；4：已取消；5：退款中；6：已退款',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
-  `pay_time` timestamp NULL DEFAULT NULL COMMENT '支付时间',
-  `use_time` timestamp NULL DEFAULT NULL COMMENT '核销时间',
-  `refund_time` timestamp NULL DEFAULT NULL COMMENT '退款时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `pay_time` datetime DEFAULT NULL COMMENT '支付时间',
+  `use_time` datetime DEFAULT NULL COMMENT '核销时间',
+  `refund_time` datetime DEFAULT NULL COMMENT '退款时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 
